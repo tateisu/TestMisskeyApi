@@ -35,13 +35,17 @@ java -jar TestMisskeyApi.jar tma.conf (options)
 
 ## 設定項目
 
-- clearCache=(boolean) trueならテスト開始前にキャッシュファイルをクリアする
-- dumpAll=(boolean) trueならレスポンス中のjsonデータを全て出力する
-- instance=(string) インスタンス名（例えば misskex.xyz )
-- user1AccessToken=(string) テストに使うユーザアカウントのアクセストークン。読み書きを行うテストアカウント。WebUIの設定ダイアログにあるアクセストークン。
-- user2AccessToken=(string) テストに使うユーザアカウントのアクセストークン。既にある程度のデータを持つアカウント。WebUIの設定ダイアログにあるアクセストークン。
-- user3AccessToken=(string) テストに使うユーザアカウントのアクセストークン。フォロー承認制のテストアカウント。WebUIの設定ダイアログにあるアクセストークン。
-- user1Password=(string) user1のパスワード。パスワード変更APIのテストに使う。 省略可能。
-- cacheDir=(string) キャッシュデータを置くディレクトリ名。省略時は ./cache
-- jpegSample=(string) 画像アップロードのテストに使うJPEGファイルのファイルパス。省略時は ./sample.jpg
+|キー名|値の形式|デフォルト値|説明|
+|-----|----|------|----|
+|clearCache|boolean|false|trueならテスト開始前にキャッシュファイルをクリアする|
+|dumpAll|boolean|false|trueならレスポンス中のjsonデータを全て出力する|
+|instance|string||インスタンス名（例えば misskex.xyz )|
+|user1AccessToken|string||テストに使うユーザアカウントのアクセストークン。読み書きを行うテストアカウント。|
+|user2AccessToken|string||テストに使うユーザアカウントのアクセストークン。既にある程度のデータを持つアカウント。|
+|user3AccessToken|string||テストに使うユーザアカウントのアクセストークン。フォロー承認制のテストアカウント。|
+|user1Password|string||user1のパスワード。パスワード変更APIのテストに使う。 省略するとそのテストは行われない。|
+|cacheDir|string|./cache|キャッシュデータを置くディレクトリ|
+|jpegSample|string|./sample.jpg|画像アップロードのテストに使うJPEGファイル|
 
+- アクセストークンはサードアプリのものではなく、WebUIの設定ダイアログにあるアクセストークンを使ってください。利用できるAPIの数が異なります。
+- booleanは 文字列 true か false を指定します

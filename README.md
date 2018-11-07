@@ -5,6 +5,9 @@
 Misskey https://github.com/syuilo/misskey 
 の API を実際に呼び出してテストします。
 
+## テスト記述状況
+https://docs.google.com/spreadsheets/d/13eaarSkVmE7U3g5F_5PmFcgB0ilxIHVoEkwZwdeTeU0/edit?usp=sharing
+
 ## 使い方
 
 ```
@@ -42,5 +45,3 @@ java -jar TestMisskeyApi.jar tma.conf (options)
 - cacheDir=(string) キャッシュデータを置くディレクトリ名。省略時は ./cache
 - jpegSample=(string) 画像アップロードのテストに使うJPEGファイルのファイルパス。省略時は ./sample.jpg
 
-## テスト記述状況
-https://docs.google.com/spreadsheets/d/13eaarSkVmE7U3g5F_5PmFcgB0ilxIHVoEkwZwdeTeU0/edit?usp=sharing

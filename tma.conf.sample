@@ -1,6 +1,6 @@
 # TestMisskeyApi 設定ファイル
 
-# APIを送る先のインスタンス名
+# インスタンス名。例えば misskey.xyz
 instance = misskey.xyz
 
 # ユーザアカウント1。ダミー投稿とかするテスト用ユーザ
@@ -16,6 +16,14 @@ user3AccessToken = *********************************
 # (WebUIのアクセストークンでないと変更に失敗します
 user1Password = ********************
 
-# ドライブのテストに使う画像のパス
+# 画像アップロードのテストに使うJPEGファイル。
 jpegSample=./sample.jpg
 
+# trueならテスト開始前にキャッシュファイルをクリアする。
+#clearCache=false
+
+# trueならレスポンス中のjsonデータを全てstdoutに出力する。
+#dumpAll=false
+
+# キャッシュデータを置くディレクトリ。
+#cacheDir = ./cache

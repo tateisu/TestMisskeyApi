@@ -19,7 +19,7 @@ suspend fun testApp(ts : TestStatus) {
         params = jsonObject(
             "name" to "TestMisskeyApi",
             "description" to "APIの試験です。このアプリは実際には使われません。",
-            "callbackUrl" to "testmksskeyapi://unused_url/",
+            "callbackUrl" to "testmisskeyapi://unused_url/",
             "permission" to Config.permissionArray
         ),
         checkExists = arrayOf("id", "name", "secret"),

@@ -1,6 +1,6 @@
-tma.conf
+
+*.conf
 cache/
-out/
 
 # Java
 *.class

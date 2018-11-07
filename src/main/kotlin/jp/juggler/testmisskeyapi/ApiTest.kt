@@ -42,7 +42,7 @@ class ApiTest(
     companion object {
 
         // jsonを文字列化した後にアクセストークンの情報を隠す
-        private val reSafeJson = "\"i\":\"[^\"]+\"".toRegex()
+        private val reSafeJson = "\"(i|currentPassword|newPassword)\":\"[^\"]+\"".toRegex()
 
         // テストごとにテストナンバーを発行することで、繰り返し呼び出す場合にキャッシュキーを変える
         private var testNumSeed = HashMap<String, Int>()
@@ -69,7 +69,6 @@ class ApiTest(
     ) : CachedRequest {
 
         val safeJsonParams = reSafeJson.replace(jsonParams, "\"i\":\"**\"")
-
         val sb = StringBuilder()
         sb.append(url)
         sb.append("脂")

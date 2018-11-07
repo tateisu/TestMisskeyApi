@@ -37,15 +37,15 @@ java -jar TestMisskeyApi.jar tma.conf (options)
 
 |キー名|値の形式|デフォルト値|説明|
 |-----|----|------|----|
-|clearCache|boolean|false|trueならテスト開始前にキャッシュファイルをクリアする|
-|dumpAll|boolean|false|trueならレスポンス中のjsonデータを全て出力する|
-|instance|string||インスタンス名（例えば misskex.xyz )|
+|clearCache|boolean|false|trueならテスト開始前にキャッシュファイルをクリアする。|
+|dumpAll|boolean|false|trueならレスポンス中のjsonデータを全てstdoutに出力する。|
+|instance|string||インスタンス名。例えば misskex.xyz |
 |user1AccessToken|string||テストに使うユーザアカウントのアクセストークン。読み書きを行うテストアカウント。|
 |user2AccessToken|string||テストに使うユーザアカウントのアクセストークン。既にある程度のデータを持つアカウント。|
 |user3AccessToken|string||テストに使うユーザアカウントのアクセストークン。フォロー承認制のテストアカウント。|
 |user1Password|string||user1のパスワード。パスワード変更APIのテストに使う。 省略するとそのテストは行われない。|
-|cacheDir|string|./cache|キャッシュデータを置くディレクトリ|
-|jpegSample|string|./sample.jpg|画像アップロードのテストに使うJPEGファイル|
+|cacheDir|string|./cache|キャッシュデータを置くディレクトリ。|
+|jpegSample|string|./sample.jpg|画像アップロードのテストに使うJPEGファイル。|
 
 - アクセストークンはサードアプリのものではなく、WebUIの設定ダイアログにあるアクセストークンを使ってください。利用できるAPIの数が異なります。
-- booleanは 文字列 true か false を指定します
+- boolean には 文字列 true か false を指定します。

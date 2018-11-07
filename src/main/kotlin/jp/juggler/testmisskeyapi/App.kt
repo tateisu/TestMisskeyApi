@@ -1,26 +1,22 @@
 package jp.juggler.testmisskeyapi
 
 import com.beust.klaxon.JsonBase
-import jp.juggler.testmisskeyapi.utils.lookupSimple
-import java.io.File
-import kotlin.coroutines.CoroutineContext
-import java.util.ArrayList
 import io.github.classgraph.ClassGraph
 import jp.juggler.testmisskeyapi.utils.LogBuffer
 import jp.juggler.testmisskeyapi.utils.TestSequence
+import jp.juggler.testmisskeyapi.utils.lookupSimple
 import kotlinx.coroutines.*
+import java.io.File
+import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
+import kotlin.coroutines.CoroutineContext
 import kotlin.reflect.KFunction
 import kotlin.reflect.full.callSuspend
 import kotlin.reflect.jvm.kotlinFunction
 
-
 object App : CoroutineScope {
 
     val log = Config.log
-
-    /////////////////////////////////////////////////////////////
-    // シグナル受信時にコルーチンをキャンセル
 
     @Volatile
     var exitCode = 1
@@ -29,9 +25,7 @@ object App : CoroutineScope {
     override val coroutineContext : CoroutineContext
         get() = Dispatchers.Default + mainJob
 
-    /////////////////////////////////////////////////////////////
 
-    // キャッシュクリア
     private fun clearCache() {
         Config.cacheDir
             .list()
@@ -42,32 +36,31 @@ object App : CoroutineScope {
             }
     }
 
-    /////////////////////////////////////////////////////////////
-
-    data class GetUserIdParams(
-        val caption : String,
-        val accessToken : String,
-        val after : (JsonBase) -> Unit
-    )
-
     private suspend fun getUserIds() {
+
+        data class Params(
+            val caption : String,
+            val accessToken : String,
+            val after : (JsonBase) -> Unit
+        )
+
         val list = arrayOf(
 
-            GetUserIdParams(
+            Params(
                 "user1",
                 Config.user1AccessToken
             ) {
                 Config.user1Id = it.lookupSimple("id")
             },
 
-            GetUserIdParams(
+            Params(
                 "user2",
                 Config.user2AccessToken
             ) {
                 Config.user2Id = it.lookupSimple("id")
             },
 
-            GetUserIdParams(
+            Params(
                 "user3",
                 Config.user3AccessToken
             ) {
@@ -100,9 +93,9 @@ object App : CoroutineScope {
     }
 
     private fun getTestFunctions() : ArrayList<KFunction<*>> {
-        val pkg = "jp.juggler.testmisskeyapi.tests"
         val dst = ArrayList<KFunction<*>>()
         try {
+            val pkg = "jp.juggler.testmisskeyapi.tests"
             ClassGraph().whitelistPackages(pkg).enableMethodInfo().scan().use { scanResult ->
                 scanResult.allClasses.forEach { classInfo ->
                     classInfo.loadClass().methods.forEach { javaMethod ->
@@ -162,7 +155,6 @@ object App : CoroutineScope {
             log.i("# all test completed. error=${log.countError}, warning=${log.countWarning}")
             exitCode = 0
         }
-
     }
 }
 

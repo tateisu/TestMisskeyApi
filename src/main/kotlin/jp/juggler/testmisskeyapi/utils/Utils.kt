@@ -33,7 +33,10 @@ fun writeFile(file : File, content : ByteArray) : Unit =
 //fun writeFile(fileName : String, content : ByteArray) : Unit =
 //    writeFile(File(fileName), content)
 
-val digitsLower : CharArray = ArrayList<Char>().apply { "0123456789abcdef".forEach { c -> add(c) } }.toCharArray()
+val digitsLower : CharArray =
+    ArrayList<Char>().apply {
+        "0123456789abcdef".forEach { add(it) }
+    }.toCharArray()
 
 fun ByteArray.toHex() : String {
     val sb = StringBuilder(size * 2)
@@ -46,6 +49,7 @@ fun ByteArray.toHex() : String {
 }
 
 private val reSplitPath = "[/.]".toRegex()
+
 fun JsonBase.lookupSimple(path : String) : Any? {
     var parent : Any? = this
     for (entry in path.split(reSplitPath).filter { it.isNotEmpty() }) {
@@ -61,12 +65,11 @@ fun JsonBase.lookupSimple(path : String) : Any? {
 fun JsonObject.shallowClone() : JsonObject {
     val dst = JsonObject()
     for ((k, v) in entries) {
-        dst.put(k, v)
+        dst[k] = v
     }
     return dst
 }
 
-fun jsonObject(vararg args : Pair<String, Any?>) : JsonObject =
-    json { obj(*args) }
+fun jsonObject(vararg args : Pair<String, Any?>) : JsonObject = json { obj(*args) }
 
 fun jsonArray(vararg args : Any?) : JsonArray<*> = json { array(*args) }

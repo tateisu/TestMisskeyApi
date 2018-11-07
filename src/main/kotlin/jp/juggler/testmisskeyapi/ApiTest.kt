@@ -16,27 +16,52 @@ import java.io.FileNotFoundException
 import java.security.MessageDigest
 
 class ApiTest(
-    val caption : String,
-    val path : String,
-    val params : JsonObject = JsonObject(),
-    val accessToken : String? = null,
-    val checkExists : Array<String>? = null,
+
+    // 説明文
+    private val caption : String,
+
+    // URLのpath部分
+    private val path : String,
+
+    // リクエストパラメータ
+    private val params : JsonObject = JsonObject(),
+
+    // リクエストパラメータに追加されるアクセストークン
+    private val accessToken : String? = null,
+
+    // エラーがなくてもレスポンスの内容を出力する
     private val dump : Boolean = false,
-    val idFinder : String? = null,
-    val untilId : Boolean = false,
-    val sinceId : Boolean = false,
-    val allowEmptyList : Boolean = false,
 
-    val after : (JsonBase) -> Unit = {},
-    val ignoreError : Regex? = null,
-    val cursor : Boolean = false,
+    // レスポンスの検証に使うデータパスの配列を指定する
+    private val checkExists : Array<String>? = null,
 
-    val uploadName : String? = null,
-    val uploadData : ByteArray? = null,
+    // レスポンスが空のリストでもエラーを出力しない
+    private val allowEmptyList : Boolean = false,
+
+    // レスポンスを使って何かしたい時にこのコールバックを利用する
+    private val after : (JsonBase) -> Unit = {},
+
+    // エラー時のレスポンスボディがこの正規表現にマッチするなら、エラーを出力しない
+    private val ignoreError : Regex? = null,
+
+    // 画像アップロードを行う際に必要なパラメータ
+    private val uploadName : String? = null,
+    private val uploadData : ByteArray? = null,
     private val uploadFileName : String? = null,
     private val uploadMimeType : String? = null,
 
-    val offset : Boolean = false
+    // untilId,sinceId を使ったページングを行うなら真
+    private val untilId : Boolean = false,
+    private val sinceId : Boolean = false,
+
+    // untilId,sinceId を使ったページングを行う際、IDをlookupするデータパス
+    private val idFinder : String? = null,
+
+    // cursor を使ったページングを試すなら真
+    private val cursor : Boolean = false,
+
+    // offset を使ったページングを試すなら真
+    private val offset : Boolean = false
 ) {
 
     companion object {
@@ -47,8 +72,8 @@ class ApiTest(
         // テストごとにテストナンバーを発行することで、繰り返し呼び出す場合にキャッシュキーを変える
         private var testNumSeed = HashMap<String, Int>()
 
-        private fun getTestNum(key:String) : Int {
-            synchronized(testNumSeed){
+        private fun getTestNum(key : String) : Int {
+            synchronized(testNumSeed) {
                 val v = 1 + (testNumSeed[key] ?: 0)
                 testNumSeed[key] = v
                 return v
@@ -56,12 +81,12 @@ class ApiTest(
         }
     }
 
-    private val config = Config
     private val coroutineContext = App.coroutineContext
 
     private lateinit var log : LogTagBase
     private lateinit var tsName : String
 
+    // HTTPリクエストの結果をキャッシュから読むか、または実際にサーバから取得する。
     private suspend fun cachedRequest(
         path : String,
         url : String,
@@ -79,7 +104,7 @@ class ApiTest(
         val safePath = path.replace('/', '-').trim { it == '-' || it <= ' ' }
 
         val testNum = getTestNum(tsName)
-        val file = File(config.cacheDir, "$tsName-$testNum-$safePath-$digest")
+        val file = File(Config.cacheDir, "$tsName-$testNum-$safePath-$digest")
 
         try {
             val item = CachedRequest.readFile(file)
@@ -164,6 +189,8 @@ class ApiTest(
     }
 
 
+    // レスポンスの内容をチェックする。
+    // 何か問題があればnullを返す。でなければ レスポンスボディをパースしたJsonBaseを返す。
     private fun checkResult(cr : CachedRequest) : JsonBase? {
 
         // missing response.
@@ -199,23 +226,25 @@ class ApiTest(
             }
         }
 
-        if (forceDump || dump || config.dumpAll) log.i(root.toJsonString(prettyPrint = true))
+        if (forceDump || dump || Config.dumpAll) log.i(root.toJsonString(prettyPrint = true))
 
         return root
     }
 
+    // ページングに使うIdを読み取る
     private fun parseOrderId(root : JsonBase) : Any? {
-        return if( idFinder == null ){
+        return if (idFinder == null) {
             log.e("missing idFinder for paging.")
             null
-        }else try {
-            root.lookupSimple(idFinder )
+        } else try {
+            root.lookupSimple(idFinder)
         } catch (ex : Throwable) {
             log.e("missing id for paging.")
             null
         }
     }
 
+    // ページングに使うIdを読み取る
     private fun parseCursorId(root : JsonBase, key : String) : Any? {
         return try {
             root.lookupSimple(key)
@@ -225,7 +254,8 @@ class ApiTest(
         }
     }
 
-    suspend fun run(log : LogTagBase,name:String) {
+    // あるAPIを1回または数回(ページング)呼び出して結果をログに出力する
+    suspend fun run(log : LogTagBase, name : String) {
 
         this.log = log
         this.tsName = name
@@ -240,7 +270,7 @@ class ApiTest(
             params["i"] = accessToken
         }
 
-        var cr = cachedRequest(path, "https://${config.instance}$path", params.toJsonString(canonical = true))
+        var cr = cachedRequest(path, "https://${Config.instance}$path", params.toJsonString(canonical = true))
         var root = checkResult(cr) ?: return
 
         try {
@@ -253,21 +283,21 @@ class ApiTest(
         if (untilId) {
             val params2 = params.shallowClone()
             params2["untilId"] = parseOrderId(root) ?: return
-            cr = cachedRequest(path, "https://${config.instance}$path", params2.toJsonString(canonical = true))
+            cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
             root = checkResult(cr) ?: return
         }
 
         if (sinceId) {
             val params2 = params.shallowClone()
             params2["sinceId"] = parseOrderId(root) ?: return
-            cr = cachedRequest(path, "https://${config.instance}$path", params2.toJsonString(canonical = true))
+            cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
             root = checkResult(cr) ?: return
         }
 
         if (cursor) {
             val params2 = params.shallowClone()
             params2["cursor"] = parseCursorId(root, "next") ?: return
-            cr = cachedRequest(path, "https://${config.instance}$path", params2.toJsonString(canonical = true))
+            cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
             root = checkResult(cr) ?: return
             // cursor には "next" はあるが "prev" はない
         }
@@ -275,15 +305,13 @@ class ApiTest(
         if (offset) {
             val params2 = params.shallowClone()
             params2["offset"] = (root as JsonArray<*>).size
-            cr = cachedRequest(path, "https://${config.instance}$path", params2.toJsonString(canonical = true))
+            cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
             @Suppress("UNUSED_VALUE")
             root = checkResult(cr) ?: return
         }
     }
 
-
     suspend fun run(ts : TestStatus) {
-        run(ts.log,ts.name)
+        run(ts.log, ts.name)
     }
-
 }

@@ -56,7 +56,7 @@ suspend fun testMessage(ts : TestStatus) {
             , path = "/api/messaging/messages/read"
             , accessToken = Config.user2AccessToken
             , params = jsonObject("messageId" to messageId)
-            // 204 No Content
+            , check204 = true
         ).run(ts)
     }
 

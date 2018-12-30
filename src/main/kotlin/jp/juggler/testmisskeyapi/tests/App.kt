@@ -67,7 +67,7 @@ suspend fun testApp(ts : TestStatus) {
                     , path = "/api/auth/accept"
                     , params = jsonObject("token" to token)
                     , accessToken = Config.user1AccessToken
-                    // 204 No Content
+                    ,check204 = true
                 ).run(ts)
 
                 ApiTest(

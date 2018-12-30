@@ -14,6 +14,8 @@ import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileNotFoundException
 import java.security.MessageDigest
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class ApiTest(
 
@@ -35,6 +37,9 @@ class ApiTest(
     // レスポンスの検証に使うデータパスの配列を指定する
     private val checkExists : Array<String>? = null,
 
+    // レスポンスが204 no content を返すことを期待する
+    private val check204 : Boolean = false,
+
     // レスポンスが空のリストでもエラーを出力しない
     private val allowEmptyList : Boolean = false,
 
@@ -50,12 +55,15 @@ class ApiTest(
     private val uploadFileName : String? = null,
     private val uploadMimeType : String? = null,
 
+    // untilId,sinceId,untilDate を使ったページングを行う際、IDをlookupするデータパス
+    private val idFinder : String? = null,
+
     // untilId,sinceId を使ったページングを行うなら真
     private val untilId : Boolean = false,
     private val sinceId : Boolean = false,
 
-    // untilId,sinceId を使ったページングを行う際、IDをlookupするデータパス
-    private val idFinder : String? = null,
+    // untilDate を使ったページングを行うなら真
+    private val untilDate : Boolean = false,
 
     // cursor を使ったページングを試すなら真
     private val cursor : Boolean = false,
@@ -212,7 +220,16 @@ class ApiTest(
         // 空リストが許可されているならチェックもafterもページングも行わない
         if (allowEmptyList && root is JsonArray<*> && root.isEmpty()) {
             log.i("empty list is allowed.")
-            return null
+            return root
+        }
+
+        if (check204) {
+            return if (root is JsonObject && root.isEmpty()) {
+                root
+            } else {
+                log.e("response is not 204?. ${cr.status} content=$content")
+                null
+            }
         }
 
         var forceDump = false
@@ -238,6 +255,30 @@ class ApiTest(
             null
         } else try {
             root.lookupSimple(idFinder)
+        } catch (ex : Throwable) {
+            log.e("missing id for paging.")
+            null
+        }
+    }
+
+    private fun ZonedDateTime.toEpochMillisecond() : Long =
+        (toLocalDate().toEpochDay() * 86400
+            + toLocalTime().toSecondOfDay()
+            + (toLocalTime().nano / 1000000)
+            - offset.totalSeconds
+            )
+
+    // ページングに使うIdを読み取る
+    private fun parseDate(root : JsonBase) : Any? {
+        return if (idFinder == null) {
+            log.e("missing idFinder for paging.")
+            null
+        } else try {
+            // 2018-12-19T06:50:58.000Z
+            val v = root.lookupSimple(idFinder)
+            if (v !is String) return v
+            val zdt = ZonedDateTime.parse(v, DateTimeFormatter.ISO_ZONED_DATE_TIME)
+            return zdt.toEpochMillisecond()
         } catch (ex : Throwable) {
             log.e("missing id for paging.")
             null
@@ -280,34 +321,43 @@ class ApiTest(
             log.e("after process failed. $ex")
         }
 
+        // various paging
         if (untilId) {
-            val params2 = params.shallowClone()
-            params2["untilId"] = parseOrderId(root) ?: return
-            cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
+            cr = cachedRequest(
+                path,
+                "https://${Config.instance}$path",
+                params.shallowClone().apply {
+                    put("untilId", parseOrderId(root) ?: return)
+                }.toJsonString(canonical = true)
+            )
             root = checkResult(cr) ?: return
-        }
 
-        if (sinceId) {
+            if (sinceId) {
+                cr = cachedRequest(
+                    path,
+                    "https://${Config.instance}$path",
+                    params.shallowClone().apply {
+                        put("sinceId", parseOrderId(root) ?: return)
+                    }.toJsonString(canonical = true)
+                )
+                checkResult(cr)
+            }
+        } else if (untilDate) {
             val params2 = params.shallowClone()
-            params2["sinceId"] = parseOrderId(root) ?: return
+            params2["untilDate"] = parseDate(root) ?: return
             cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
-            root = checkResult(cr) ?: return
-        }
-
-        if (cursor) {
+            checkResult(cr)
+        } else if (cursor) {
             val params2 = params.shallowClone()
             params2["cursor"] = parseCursorId(root, "next") ?: return
             cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
-            root = checkResult(cr) ?: return
+            checkResult(cr)
             // cursor には "next" はあるが "prev" はない
-        }
-
-        if (offset) {
+        } else if (offset) {
             val params2 = params.shallowClone()
             params2["offset"] = (root as JsonArray<*>).size
             cr = cachedRequest(path, "https://${Config.instance}$path", params2.toJsonString(canonical = true))
-            @Suppress("UNUSED_VALUE")
-            root = checkResult(cr) ?: return
+            checkResult(cr)
         }
     }
 

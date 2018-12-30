@@ -17,7 +17,7 @@ suspend fun testUser1(ts : TestStatus) {
             , path = "/api/i/change_password"
             , params = jsonObject("currentPassword" to Config.user1Password, "newPassword" to Config.user1Password)
             , accessToken = Config.user1AccessToken
-            // 204 no content
+            , check204 = true
         ).run(ts)
     }
 
@@ -90,7 +90,7 @@ suspend fun testUserFrequentlyReplied(ts : TestStatus) {
         caption = "よくリプライするユーザ"
         , path = "/api/users/get_frequently_replied_users"
         , params = jsonObject("userId" to Config.user2Id)
-        , checkExists = arrayOf("0.weight","0.user.id", "0.user.username")
+        , checkExists = arrayOf("0.weight", "0.user.id", "0.user.username")
     ).run(ts)
 }
 
@@ -100,7 +100,7 @@ suspend fun testUserSearch(ts : TestStatus) {
     ApiTest(
         caption = "ユーザを検索"
         , path = "/api/users/search"
-        , params = jsonObject("query" to "tateisu" )
+        , params = jsonObject("query" to "tateisu")
         , checkExists = arrayOf("0.id", "0.username")
         , offset = true
     ).run(ts)
@@ -115,6 +115,6 @@ suspend fun testUsers(ts : TestStatus) {
         , path = "/api/users"
         , params = jsonObject("sort" to "+follower")
         , checkExists = arrayOf("0.id", "0.username")
-        ,offset = true
+        , offset = true
     ).run(ts)
 }

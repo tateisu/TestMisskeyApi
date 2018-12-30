@@ -6,6 +6,7 @@ import jp.juggler.testmisskeyapi.utils.LogBuffer
 import jp.juggler.testmisskeyapi.utils.TestSequence
 import jp.juggler.testmisskeyapi.utils.lookupSimple
 import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.produce
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -42,54 +43,55 @@ object App : CoroutineScope {
             val caption : String,
             val accessToken : String,
             val after : (JsonBase) -> Unit
-        )
+        ) {
+
+            val log = LogBuffer()
+            var task : Deferred<Unit>? = null
+        }
+
 
         val list = arrayOf(
 
             Params(
                 "user1",
                 Config.user1AccessToken
-            ) {
-                Config.user1Id = it.lookupSimple("id")
-            },
+            ) { Config.user1Id = it.lookupSimple("id") },
 
             Params(
                 "user2",
                 Config.user2AccessToken
-            ) {
-                Config.user2Id = it.lookupSimple("id")
-            },
+            ) { Config.user2Id = it.lookupSimple("id") },
 
             Params(
                 "user3",
                 Config.user3AccessToken
-            ) {
-                Config.user3Id = it.lookupSimple("id")
-            }
+            ) { Config.user3Id = it.lookupSimple("id") }
+        )
 
-        ).mapNotNull {
-            if (it.accessToken.isEmpty()) {
-                null
-            } else {
-                async(Dispatchers.IO + coroutineContext) {
-                    val logBuffer = LogBuffer()
+        // start async tasks
+        list.forEach {
+            if (it.accessToken.isNotEmpty()) {
+                it.task = async(Dispatchers.IO + coroutineContext) {
                     ApiTest(
                         caption = "(${it.caption})ログインユーザの情報"
                         , path = "/api/i"
                         , checkExists = arrayOf("id")
                         , accessToken = it.accessToken
                         , after = it.after
-                    ).run(logBuffer, "0getUserIds-${it.caption}")
-                    logBuffer
+                    ).run(it.log, "0getUserIds-${it.caption}")
                 }
             }
         }
 
+        // await tasks and print result
         list.forEach {
-            val rv = it.await()
-            rv.copyBuffer(log)
+            try {
+                it.task?.await()
+            } catch (ex : Throwable) {
+                it.log.e("await caught exception. $ex ${ex.cause}")
+            }
+            it.log.copyBuffer(log)
         }
-
     }
 
     private fun getTestFunctions() : ArrayList<KFunction<*>> {
@@ -134,23 +136,29 @@ object App : CoroutineScope {
                     try {
                         tss.kFunction.callSuspend(tss)
                     } catch (ex : Throwable) {
-                        ex.printStackTrace()
+                        ex.printStackTrace() // may cancelled
                     }
                     log.i("runner#$rNum ${tss.name} end")
                 }
             }
         }.toList()
 
-        runners.forEach { it.await() }
-
-        for (tss in tssList) {
-            if (! isActive) break
-            log.i("####################")
-            log.i("# ${tss.name} result")
-            tss.log.copyBuffer(log)
+        runners.forEach {
+            try {
+                it.await()
+            } catch (ex : Throwable) {
+                log.w("await caught exception $ex ${ex.cause}")
+            }
         }
 
         if (isActive) {
+
+            for (tss in tssList) {
+                log.i("####################")
+                log.i("# ${tss.name} result")
+                tss.log.copyBuffer(log)
+            }
+
             log.i("####################")
             log.i("# all test completed. error=${log.countError}, warning=${log.countWarning}")
             exitCode = 0

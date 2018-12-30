@@ -44,7 +44,7 @@ suspend fun testNoteUser1(ts : TestStatus) {
         caption = "(user1)未読のクリア"
         , path = "/api/i/read_all_unread_notes"
         , accessToken = Config.user1AccessToken
-        // 204 no content
+        , check204 = true
     ).run(ts)
 }
 
@@ -117,7 +117,7 @@ suspend fun testNotePin(ts : TestStatus) {
                 , path = "/api/notes/reactions/create"
                 , accessToken = Config.user2AccessToken
                 , params = jsonObject("noteId" to createdNoteId, "reaction" to "hmm")
-                // 204 No Content
+                , check204 = true
             ).run(ts)
 
             ApiTest(
@@ -125,7 +125,7 @@ suspend fun testNotePin(ts : TestStatus) {
                 , path = "/api/notes/reactions/create"
                 , accessToken = Config.user3AccessToken
                 , params = jsonObject("noteId" to createdNoteId, "reaction" to "hmm")
-                // 204 No Content
+                , check204 = true
             ).run(ts)
 
             ApiTest(
@@ -142,7 +142,7 @@ suspend fun testNotePin(ts : TestStatus) {
                 , path = "/api/notes/reactions/delete"
                 , accessToken = Config.user2AccessToken
                 , params = jsonObject("noteId" to createdNoteId)
-                // 204 No Content
+                , check204 = true
             ).run(ts)
 
             ApiTest(
@@ -150,7 +150,7 @@ suspend fun testNotePin(ts : TestStatus) {
                 , path = "/api/notes/reactions/delete"
                 , accessToken = Config.user3AccessToken
                 , params = jsonObject("noteId" to createdNoteId)
-                // 204 No Content
+                , check204 = true
             ).run(ts)
         }
 
@@ -160,7 +160,7 @@ suspend fun testNotePin(ts : TestStatus) {
                 , path = "/api/notes/polls/vote"
                 , accessToken = Config.user3AccessToken
                 , params = jsonObject("noteId" to createdNoteId, "choice" to 0)
-                // 204 No Content
+                , check204 = true
             ).run(ts)
 
 
@@ -203,7 +203,7 @@ suspend fun testNotePin(ts : TestStatus) {
                 , offset = true
             ).run(ts)
 
-            var conversationLast : Any = createdNoteId!!
+            var conversationLast : Any = createdNoteId !!
             for (i in 1 .. 5) {
                 ApiTest(
                     caption = "(user3) 会話の流れを作成",
@@ -211,7 +211,7 @@ suspend fun testNotePin(ts : TestStatus) {
                     params = jsonObject("visibility" to "home", "replyId" to conversationLast, "text" to "ぶらー$i"),
                     accessToken = Config.user1AccessToken,
                     checkExists = arrayOf("createdNote.id"),
-                    after = { conversationLast = it.lookupSimple("createdNote.id") ?:conversationLast }
+                    after = { conversationLast = it.lookupSimple("createdNote.id") ?: conversationLast }
                 ).run(ts)
             }
 

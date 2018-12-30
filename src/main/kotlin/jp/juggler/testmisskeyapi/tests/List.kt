@@ -56,7 +56,15 @@ suspend fun testListAction(ts : TestStatus) {
         , path = "/api/users/lists/push"
         , accessToken = Config.user1AccessToken
         , params = jsonObject("listId" to listId, "userId" to Config.user2Id)
-        // 204 No Content
+        ,check204 = true
+    ).run(ts)
+
+    ApiTest(
+        caption = "(user1)リストからユーザーを削除"
+        , path = "/api/users/lists/pull"
+        , accessToken = Config.user1AccessToken
+        , params = jsonObject("listId" to listId, "userId" to Config.user2Id)
+        ,check204 = true
     ).run(ts)
 
     ApiTest(
@@ -81,6 +89,6 @@ suspend fun testListAction(ts : TestStatus) {
         , path = "/api/users/lists/delete"
         , accessToken = Config.user1AccessToken
         , params = jsonObject("listId" to listId)
-        // 204 No Content
+        ,check204 = true
     ).run(ts)
 }

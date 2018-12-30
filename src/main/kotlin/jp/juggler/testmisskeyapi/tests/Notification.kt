@@ -24,6 +24,6 @@ suspend fun testNotification1(ts : TestStatus) {
         caption = "(user1)通知を全て既読にする"
         , path = "/api/notifications/mark_all_as_read"
         , accessToken = Config.user1AccessToken
-        // 204 No Content
+        , check204 = true
     ).run(ts)
 }

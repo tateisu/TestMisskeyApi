@@ -23,7 +23,7 @@ suspend fun testUserFollowAction(ts : TestStatus) {
     ).run(ts)
 
     ApiTest(
-         caption = "(user3,user1)フォロー"
+        caption = "(user3,user1)フォロー"
         , path = "/api/following/create"
         , accessToken = Config.user3AccessToken
         , params = jsonObject("userId" to Config.user1Id)
@@ -34,7 +34,7 @@ suspend fun testUserFollowAction(ts : TestStatus) {
         , path = "/api/following/stalk"
         , accessToken = Config.user3AccessToken
         , params = jsonObject("userId" to Config.user1Id)
-        // 204 No Content
+        , check204 = true
     ).run(ts)
 
 
@@ -43,11 +43,11 @@ suspend fun testUserFollowAction(ts : TestStatus) {
         , path = "/api/following/unstalk"
         , accessToken = Config.user3AccessToken
         , params = jsonObject("userId" to Config.user1Id)
-        // 204 No Content
+        , check204 = true
     ).run(ts)
 
     ApiTest(
-         caption = "(user3,user1)フォロー解除"
+        caption = "(user3,user1)フォロー解除"
         , path = "/api/following/delete"
         , accessToken = Config.user3AccessToken
         , params = jsonObject("userId" to Config.user1Id)
@@ -124,7 +124,7 @@ suspend fun testUserFollowRequest(ts : TestStatus) {
             , path = "/api/following/requests/accept"
             , accessToken = Config.user3AccessToken
             , params = jsonObject("userId" to targetId)
-            // 204 no content
+            , check204 = true
         ).run(ts)
     }
 
@@ -149,7 +149,7 @@ suspend fun testUserFollowRequest(ts : TestStatus) {
             , path = "/api/following/requests/reject"
             , accessToken = Config.user3AccessToken
             , params = jsonObject("userId" to targetId)
-            // 204 No Content
+            , check204 = true
         ).run(ts)
     }
 
@@ -174,7 +174,6 @@ suspend fun testUserFollowRequest(ts : TestStatus) {
 
     prepareFollowRequest(Config.user1Id, Config.user1AccessToken, "user1")
     cancelFollowRequest(Config.user1Id, Config.user1AccessToken, "user1")
-
 
 
 }

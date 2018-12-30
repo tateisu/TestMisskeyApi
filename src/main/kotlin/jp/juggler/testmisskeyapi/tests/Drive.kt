@@ -144,7 +144,7 @@ suspend fun testDrive1(ts : TestStatus) {
                     , path = "/api/drive/files/delete"
                     , accessToken = Config.user1AccessToken
                     , params = jsonObject("fileId" to fileId)
-                    // 204 No Content
+                    ,check204 = true
                 ).run(ts)
             }
 
@@ -154,7 +154,7 @@ suspend fun testDrive1(ts : TestStatus) {
                     , path = "/api/drive/files/delete"
                     , accessToken = Config.user1AccessToken
                     , params = jsonObject("fileId" to fileId2)
-                    // 204 No Content
+                    ,check204 = true
                 ).run(ts)
 
                 // fileId とfileId2 は同じID になっているので
@@ -184,7 +184,7 @@ suspend fun testDrive1(ts : TestStatus) {
             , path = "/api/drive/folders/delete"
             , accessToken = Config.user1AccessToken
             , params = jsonObject("folderId" to folderId)
-            // 204 no content
+            ,check204 = true
         ).run(ts)
     }
 

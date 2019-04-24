@@ -47,33 +47,46 @@ suspend fun testDrive1(ts : TestStatus) {
             var md5 : Any? = null
 
             ApiTest(
-                caption = "(user1)ドライブのファイルを作成"
-                , path = "/api/drive/files/create"
-                , accessToken = Config.user1AccessToken
-                , params = jsonObject("force" to true, "folderId" to folderId)
-                , uploadName = "file"
-                , uploadData = Config.jpegSample
-                , uploadFileName = fileName
-                , uploadMimeType = "image/jpeg"
-                , checkExists = arrayOf("id", "url", "md5", "name", "type", "datasize"),
+                caption = "(user1)ドライブのファイルを作成",
+                path = "/api/drive/files/create",
+                accessToken = Config.user1AccessToken,
+                params = jsonObject("force" to true, "folderId" to folderId),
+                uploadName = "file",
+                uploadData = Config.jpegSample,
+                uploadFileName = fileName,
+                uploadMimeType = "image/jpeg",
+                checkExists = arrayOf(
+                    "id", "url", "md5", "name", "type",
+                    if (Config.apiVersion >= 11) {
+                        "size"
+                    } else {
+                        "datasize"
+                    }
+                ),
                 after = {
                     fileId = it.lookupSimple("id")
                     fileUrl = it.lookupSimple("url")
                     md5 = it.lookupSimple("md5")
                 }
             ).run(ts)
-
             var fileId2 : Any? = null
 
             if (fileUrl != null) {
 
                 ApiTest(
-                    caption = "(user1)ドライブのファイルの作成(URL指定)"
-                    , path = "/api/drive/files/upload_from_url"
-                    , accessToken = Config.user1AccessToken
-                    , params = jsonObject("url" to fileUrl, "folderId" to folderId)
-                    , checkExists = arrayOf("id", "url", "md5", "name", "type", "datasize")
-                    , after = { fileId2 = it.lookupSimple("id") }
+                    caption = "(user1)ドライブのファイルの作成(URL指定)",
+                    path = "/api/drive/files/upload_from_url",
+                    accessToken = Config.user1AccessToken,
+                    params = jsonObject("url" to fileUrl, "folderId" to folderId),
+                    checkExists = arrayOf(
+                        "id", "url", "md5", "name", "type",
+                        if (Config.apiVersion >= 11) {
+                            "size"
+                        } else {
+                            "datasize"
+                        }
+                    ),
+                    after = { fileId2 = it.lookupSimple("id") }
                 ).run(ts)
 
                 // /drive/files/upload_from_url には force とかisSensitive とかないので
@@ -95,31 +108,51 @@ suspend fun testDrive1(ts : TestStatus) {
             if (fileId != null) {
 
                 ApiTest(
-                    caption = "(user1)ドライブのファイルの更新"
-                    , path = "/api/drive/files/update"
-                    , accessToken = Config.user1AccessToken
-                    , params = jsonObject("fileId" to fileId, "name" to fileName)
-                    , checkExists = arrayOf("id", "url", "md5", "name", "type", "datasize")
+                    caption = "(user1)ドライブのファイルの更新",
+                    path = "/api/drive/files/update",
+                    accessToken = Config.user1AccessToken,
+                    params = jsonObject("fileId" to fileId, "name" to fileName),
+                    checkExists = arrayOf(
+                        "id", "url", "md5", "name", "type",
+                        if (Config.apiVersion >= 11) {
+                            "size"
+                        } else {
+                            "datasize"
+                        }
+                    )
                 ).run(ts)
 
                 ApiTest(
-                    caption = "(user1)ドライブのファイルの情報"
-                    , path = "/api/drive/files/show"
-                    , accessToken = Config.user1AccessToken
-                    , params = jsonObject("fileId" to fileId)
-                    , checkExists = arrayOf("id", "url", "md5", "name", "type", "datasize")
+                    caption = "(user1)ドライブのファイルの情報",
+                    path = "/api/drive/files/show",
+                    accessToken = Config.user1AccessToken,
+                    params = jsonObject("fileId" to fileId),
+                    checkExists = arrayOf(
+                        "id", "url", "md5", "name", "type",
+                        if (Config.apiVersion >= 11) {
+                            "size"
+                        } else {
+                            "datasize"
+                        }
+                    )
                 ).run(ts)
 
                 ApiTest(
-                    caption = "(user1)画像つき投稿"
-                    , path = "/api/notes/create"
-                    , accessToken = Config.user1AccessToken
-                    , params = jsonObject(
-                    "text" to "test",
-                    "visibility" to "home",
-                    "fileIds" to jsonArray(fileId)
-                )
-                    , checkExists = arrayOf("createdNote.media.0.id")
+                    caption = "(user1)画像つき投稿",
+                    path = "/api/notes/create",
+                    accessToken = Config.user1AccessToken,
+                    params = jsonObject(
+                        "text" to "test",
+                        "visibility" to "home",
+                        "fileIds" to jsonArray(fileId)
+                    ),
+                    checkExists = arrayOf(
+                        if(Config.apiVersion>=11) {
+                            "createdNote.files.0.id"
+                        }else{
+                            "createdNote.media.0.id"
+                        }
+                    )
                 ).run(ts)
 
                 ApiTest(
@@ -144,7 +177,7 @@ suspend fun testDrive1(ts : TestStatus) {
                     , path = "/api/drive/files/delete"
                     , accessToken = Config.user1AccessToken
                     , params = jsonObject("fileId" to fileId)
-                    ,check204 = true
+                    , check204 = true
                 ).run(ts)
             }
 
@@ -154,7 +187,7 @@ suspend fun testDrive1(ts : TestStatus) {
                     , path = "/api/drive/files/delete"
                     , accessToken = Config.user1AccessToken
                     , params = jsonObject("fileId" to fileId2)
-                    ,check204 = true
+                    , check204 = true
                 ).run(ts)
 
                 // fileId とfileId2 は同じID になっているので
@@ -184,7 +217,7 @@ suspend fun testDrive1(ts : TestStatus) {
             , path = "/api/drive/folders/delete"
             , accessToken = Config.user1AccessToken
             , params = jsonObject("folderId" to folderId)
-            ,check204 = true
+            , check204 = true
         ).run(ts)
     }
 

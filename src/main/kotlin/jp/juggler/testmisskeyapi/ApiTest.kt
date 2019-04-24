@@ -74,6 +74,8 @@ class ApiTest(
 
     companion object {
 
+        private val userAgent = "TestMisskeyApi"
+
         // jsonを文字列化した後にアクセストークンの情報を隠す
         private val reSafeJson = "\"(i|currentPassword|newPassword)\":\"[^\"]+\"".toRegex()
 
@@ -101,7 +103,7 @@ class ApiTest(
         jsonParams : String
     ) : CachedRequest {
 
-        val safeJsonParams = reSafeJson.replace(jsonParams, "\"i\":\"**\"")
+        val safeJsonParams = reSafeJson.replace(jsonParams, "\"\$1\":\"**\"")
         val sb = StringBuilder()
         sb.append(url)
         sb.append("脂")
@@ -141,6 +143,7 @@ class ApiTest(
                     }
 
                     Fuel.upload(url, Method.POST, formData)
+                        .header("user-agent" to userAgent)
                         .timeout(30000)
                         .timeoutRead(30000)
                         .blob { request, _ ->
@@ -155,6 +158,7 @@ class ApiTest(
                 else -> Fuel.request(method = Method.POST, path = url)
                     .timeout(30000)
                     .timeoutRead(30000)
+                    .header("user-agent" to userAgent)
                     .header("content-type" to "application/json; charset=UTF-8")
                     .body(jsonParams.toByteArray(Charsets.UTF_8))
                     .awaitByteArrayResponse(Dispatchers.IO + coroutineContext)
@@ -262,10 +266,10 @@ class ApiTest(
     }
 
     private fun ZonedDateTime.toEpochMillisecond() : Long =
-        (toLocalDate().toEpochDay() * 86400
-            + toLocalTime().toSecondOfDay()
-            + (toLocalTime().nano / 1000000)
-            - offset.totalSeconds
+        (toLocalDate().toEpochDay() * 86400000L
+            + toLocalTime().toSecondOfDay().toLong() *1000L
+            + (toLocalTime().nano.toLong() / 1000000L)
+            - offset.totalSeconds.toLong()
             )
 
     // ページングに使うIdを読み取る

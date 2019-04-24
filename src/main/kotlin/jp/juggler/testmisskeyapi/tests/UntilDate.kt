@@ -13,7 +13,7 @@ suspend fun testUntilDate(ts : TestStatus) {
         , path = "/api/notes/global-timeline"
         , checkExists = arrayOf("0.id", "0.user.username","0.createdAt")
         , idFinder = "0.createdAt"
-        , sinceId = true
         , untilDate = true
+    // TODO: sinceDateもテストする？    , sinceId = true
     ).run(ts)
 }

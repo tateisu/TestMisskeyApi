@@ -54,8 +54,17 @@ fun JsonBase.lookupSimple(path : String) : Any? {
     var parent : Any? = this
     for (entry in path.split(reSplitPath).filter { it.isNotEmpty() }) {
         parent = when (parent) {
-            is JsonObject -> parent[entry]
-            is JsonArray<*> -> parent[entry.toInt()]
+            is JsonObject -> {
+                parent[entry]
+            }
+            is JsonArray<*> -> {
+                val idx = entry.toInt()
+                if( idx < 0 || idx >= parent.size ){
+                    error("$parent has no child index $idx")
+                }else {
+                    parent[idx]
+                }
+            }
             else -> error("$parent has no child $entry.")
         }
     }

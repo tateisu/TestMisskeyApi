@@ -19,7 +19,7 @@ suspend fun testUserFollowAction(ts : TestStatus) {
         , path = "/api/following/delete"
         , accessToken = Config.user3AccessToken
         , params = jsonObject("userId" to Config.user1Id)
-        , ignoreError = "already not following".toRegex()
+        , ignoreError = "already not following|You are not following that user".toRegex()
     ).run(ts)
 
     ApiTest(
@@ -29,22 +29,25 @@ suspend fun testUserFollowAction(ts : TestStatus) {
         , params = jsonObject("userId" to Config.user1Id)
     ).run(ts)
 
-    ApiTest(
-        caption = "(user3,user1)ストーキング"
-        , path = "/api/following/stalk"
-        , accessToken = Config.user3AccessToken
-        , params = jsonObject("userId" to Config.user1Id)
-        , check204 = true
-    ).run(ts)
+    if (Config.apiVersion <= 10) {
+        ApiTest(
+            caption = "(user3,user1)ストーキング"
+            , path = "/api/following/stalk"
+            , accessToken = Config.user3AccessToken
+            , params = jsonObject("userId" to Config.user1Id)
+            , check204 = true
+        ).run(ts)
 
 
-    ApiTest(
-        caption = "(user3,user1)ストーキング解除"
-        , path = "/api/following/unstalk"
-        , accessToken = Config.user3AccessToken
-        , params = jsonObject("userId" to Config.user1Id)
-        , check204 = true
-    ).run(ts)
+        ApiTest(
+            caption = "(user3,user1)ストーキング解除"
+            , path = "/api/following/unstalk"
+            , accessToken = Config.user3AccessToken
+            , params = jsonObject("userId" to Config.user1Id)
+            , check204 = true
+        ).run(ts)
+
+    }
 
     ApiTest(
         caption = "(user3,user1)フォロー解除"
@@ -59,25 +62,48 @@ suspend fun testUserFollowAction(ts : TestStatus) {
 suspend fun testUserFollowList(ts : TestStatus) {
     Config.user2Id ?: return
 
-    ApiTest(
-        caption = "(user2)フォロワー一覧"
-        , path = "/api/users/followers"
-        , accessToken = Config.user2AccessToken
-        , params = jsonObject("userId" to Config.user2Id)
-        , checkExists = arrayOf("users.0.id", "users.0.followersCount", "users.0.isFollowing")
-        , cursor = true
-        // フォロワー一覧のレスポンスはユーザ関係やフォローカウントなどを含む (2018/11/6)
-    ).run(ts)
+    if (Config.apiVersion >= 11) {
+        ApiTest(
+            caption = "(user2)フォロワー一覧",
+            path = "/api/users/followers",
+            accessToken = Config.user2AccessToken,
+            params = jsonObject("userId" to Config.user2Id),
+            checkExists =arrayOf("0.id", "0.follower.followersCount", "0.follower.isFollowing"),
+            sinceId = true,
+            untilId = true,
+            idFinder = "0.id"
+        ).run(ts)
 
-    ApiTest(
-        caption = "(user2)フォロー一覧"
-        , path = "/api/users/following"
-        , accessToken = Config.user2AccessToken
-        , params = jsonObject("userId" to Config.user2Id)
-        , checkExists = arrayOf("users.0.id", "users.0.followersCount", "users.0.isFollowing")
-        , cursor = true
-        // フォロワー一覧のレスポンスはユーザ関係やフォローカウントなどを含む (2018/11/6)
-    ).run(ts)
+        ApiTest(
+            caption = "(user2)フォロー一覧",
+            path = "/api/users/following",
+            accessToken = Config.user2AccessToken,
+            params = jsonObject("userId" to Config.user2Id),
+            checkExists = arrayOf("0.id", "0.followee.followersCount", "0.followee.isFollowing"),
+            sinceId = true,
+            untilId = true,
+            idFinder = "0.id"
+        ).run(ts)
+
+    }else{
+        ApiTest(
+            caption = "(user2)フォロワー一覧",
+            path = "/api/users/followers",
+            accessToken = Config.user2AccessToken,
+            params = jsonObject("userId" to Config.user2Id),
+            checkExists =arrayOf("users.0.id", "users.0.followersCount", "users.0.isFollowing"),
+            cursor = true
+        ).run(ts)
+
+        ApiTest(
+            caption = "(user2)フォロー一覧",
+            path = "/api/users/following",
+            accessToken = Config.user2AccessToken,
+            params = jsonObject("userId" to Config.user2Id),
+            checkExists = arrayOf("users.0.id", "users.0.followersCount", "users.0.isFollowing"),
+            cursor = true
+        ).run(ts)
+    }
 }
 
 @TestSequence
@@ -95,7 +121,7 @@ suspend fun testUserFollowRequest(ts : TestStatus) {
             , path = "/api/following/delete"
             , accessToken = token
             , params = jsonObject("userId" to Config.user3Id)
-            , ignoreError = "already not following".toRegex()
+            , ignoreError = "already not following|You are not following that user".toRegex()
         ).run(ts)
 
         ApiTest(

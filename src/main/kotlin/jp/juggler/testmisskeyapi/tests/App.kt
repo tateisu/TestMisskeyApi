@@ -55,10 +55,18 @@ suspend fun testApp(ts : TestStatus) {
         if (token != null) {
 
             ApiTest(
-                caption = "認証セッション表示"
-                , path = "/api/auth/session/show"
-                , params = jsonObject("token" to token)
-                , checkExists = arrayOf("appId", "token", "app.name")
+                caption = "認証セッション表示",
+                path = "/api/auth/session/show",
+                params = jsonObject("token" to token),
+                checkExists = arrayOf(
+                    if(Config.apiVersion >= 11){
+                        "app.id"
+                    }else{
+                        "appId"
+                    },
+                    "token",
+                    "app.name"
+                )
             ).run(ts)
 
             if (Config.user1Id != null) {

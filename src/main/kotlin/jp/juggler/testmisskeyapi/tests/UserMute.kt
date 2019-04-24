@@ -33,7 +33,7 @@ suspend fun testUserMuteAction(ts : TestStatus) {
         , path = "/api/mute/delete"
         , accessToken = Config.user1AccessToken
         , params = jsonObject("userId" to Config.user2Id)
-        , ignoreError = "already not ".toRegex()
+        , ignoreError = "already not |You are not muting that user".toRegex()
     ).run(ts)
 
     ApiTest(

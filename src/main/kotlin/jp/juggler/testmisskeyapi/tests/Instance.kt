@@ -1,6 +1,7 @@
 package jp.juggler.testmisskeyapi.tests
 
 import jp.juggler.testmisskeyapi.ApiTest
+import jp.juggler.testmisskeyapi.Config
 import jp.juggler.testmisskeyapi.TestStatus
 import jp.juggler.testmisskeyapi.utils.TestSequence
 import jp.juggler.testmisskeyapi.utils.jsonObject
@@ -10,9 +11,13 @@ import jp.juggler.testmisskeyapi.utils.jsonObject
 suspend fun testInstance(ts : TestStatus) {
 
     ApiTest(
-        caption = "インスタンス情報"
-        , path = "/api/meta"
-        , checkExists = arrayOf("version", "clientVersion", "maxNoteTextLength")
+        caption = "インスタンス情報",
+        path = "/api/meta",
+        checkExists = if (Config.apiVersion >= 11) {
+            arrayOf("version", "maxNoteTextLength")
+        } else {
+            arrayOf("version", "maxNoteTextLength", "clientVersion")
+        }
     ).run(ts)
 }
 

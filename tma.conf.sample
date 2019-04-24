@@ -3,6 +3,9 @@
 # インスタンス名。例えば misskey.xyz
 instance = misskey.xyz
 
+# インスタンスのMisskeyメジャーバージョン。10か11
+apiVersion=10
+
 # ユーザアカウント1。ダミー投稿とかするテスト用ユーザ
 user1AccessToken = *********************************
 

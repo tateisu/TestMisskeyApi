@@ -32,7 +32,7 @@ suspend fun testUserBlockAction(ts : TestStatus) {
         , path = "/api/blocking/delete"
         , accessToken = Config.user1AccessToken
         , params = jsonObject("userId" to Config.user2Id)
-        , ignoreError = "already not blocking".toRegex()
+        , ignoreError = "already not blocking|You are not blocking that user".toRegex()
     ).run(ts)
 
     ApiTest(

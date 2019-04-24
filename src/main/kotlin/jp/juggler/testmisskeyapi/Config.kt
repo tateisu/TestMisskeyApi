@@ -64,6 +64,7 @@ object Config{
     var cacheDir : File = File("./cache")
     var dumpAll = false
     var jpegSample : ByteArray? = null
+    var apiVersion = 10
 
     private fun configError(message : String) {
         hasError = true
@@ -102,6 +103,8 @@ object Config{
             }
 
             "cacheDir" -> cacheDir = File(v)
+
+            "apiVersion" -> apiVersion = v.toInt()
 
             else -> error("parseConfigPair: unknown key $k.")
         }

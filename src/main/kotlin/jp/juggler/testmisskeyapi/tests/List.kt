@@ -11,12 +11,18 @@ import jp.juggler.testmisskeyapi.utils.lookupSimple
 suspend fun testListList(ts : TestStatus) {
     Config.user2Id ?: return
 
+    val titleArg = if(Config.apiVersion>=11){
+        "name"
+    }else{
+        "title"
+    }
+
     var listId : Any? = null
     ApiTest(
         caption = "(user2)リストの一覧"
         , path = "/api/users/lists/list"
         , accessToken = Config.user2AccessToken
-        , checkExists = arrayOf("0.id", "0.title")
+        , checkExists = arrayOf("0.id", "0.$titleArg")
         , after = { listId = it.lookupSimple("0.id") }
     ).run(ts)
 
@@ -39,13 +45,19 @@ suspend fun testListAction(ts : TestStatus) {
     Config.user1Id ?: return
     Config.user2Id ?: return
 
+    val titleArg = if(Config.apiVersion>=11){
+        "name"
+    }else{
+        "title"
+    }
+
     var listId : Any? = null
     ApiTest(
         caption = "(user1)リストの作成"
         , path = "/api/users/lists/create"
         , accessToken = Config.user1AccessToken
-        , params = jsonObject("title" to "TestMisskeyApi")
-        , checkExists = arrayOf("id", "title", "userIds")
+        , params = jsonObject(titleArg to "TestMisskeyApi")
+        , checkExists = arrayOf("id", titleArg, "userIds")
         , after = { listId = it.lookupSimple("id") }
     ).run(ts)
 
@@ -71,8 +83,8 @@ suspend fun testListAction(ts : TestStatus) {
         caption = "(user1)リストのタイトル変更"
         , path = "/api/users/lists/update"
         , accessToken = Config.user1AccessToken
-        , checkExists = arrayOf("id", "title", "userIds.0")
-        , params = jsonObject("listId" to listId, "title" to "TestMisskeyApi2")
+        , checkExists = arrayOf("id", titleArg, "userIds.0")
+        , params = jsonObject("listId" to listId, titleArg to "TestMisskeyApi2")
     ).run(ts)
 
 
@@ -80,7 +92,7 @@ suspend fun testListAction(ts : TestStatus) {
         caption = "(user1)リストの情報を表示"
         , path = "/api/users/lists/show"
         , accessToken = Config.user1AccessToken
-        , checkExists = arrayOf("id", "title", "userIds.0")
+        , checkExists = arrayOf("id", titleArg, "userIds.0")
         , params = jsonObject("listId" to listId)
     ).run(ts)
 

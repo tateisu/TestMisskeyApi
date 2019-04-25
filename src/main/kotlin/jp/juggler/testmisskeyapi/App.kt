@@ -6,7 +6,6 @@ import jp.juggler.testmisskeyapi.utils.LogBuffer
 import jp.juggler.testmisskeyapi.utils.TestSequence
 import jp.juggler.testmisskeyapi.utils.lookupSimple
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.produce
 import java.io.File
 import java.util.*
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -28,13 +27,20 @@ object App : CoroutineScope {
 
 
     private fun clearCache() {
+        var nDeleted = 0
+        var nDeleteFailed = 0
         Config.cacheDir
-            .list()
-            .asSequence()
-            .map { File(it) }
+            .listFiles()
+            .filter{ it.isFile}
             .forEach {
-                if (it.isFile) it.delete()
+                val r = it.delete()
+                if (r) {
+                    ++ nDeleted
+                } else {
+                    ++ nDeleteFailed
+                }
             }
+            log.i("clearCache: $nDeleted files deleted, $nDeleteFailed files failed.")
     }
 
     private suspend fun getUserIds() {

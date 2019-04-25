@@ -129,12 +129,20 @@ suspend fun testNotePin(ts : TestStatus) {
             ).run(ts)
 
             ApiTest(
-                caption = "(user1)リアクションの一覧"
-                , path = "/api/notes/reactions"
-                , accessToken = Config.user1AccessToken
-                , params = jsonObject("noteId" to createdNoteId)
-                , checkExists = arrayOf("0.id", "0.reaction", "0.user.username")
-                , offset = true
+                caption = "(user1)リアクションの一覧",
+                path = "/api/notes/reactions",
+                accessToken = Config.user1AccessToken,
+                params = jsonObject("noteId" to createdNoteId),
+                checkExists = arrayOf(
+                    "0.id",
+                    "0.user.username",
+                    if(Config.apiVersion>=11){
+                        "0.type"
+                    }else{
+                        "0.reaction"
+                    }
+                ),
+                offset = true
             ).run(ts)
 
             ApiTest(

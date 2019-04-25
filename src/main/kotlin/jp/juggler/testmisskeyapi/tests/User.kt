@@ -21,18 +21,6 @@ suspend fun testUser1(ts : TestStatus) {
         ).run(ts)
     }
 
-
-    ApiTest(
-        caption = "(user1)ログイン履歴"
-        , path = "/api/i/signin_history"
-        , accessToken = Config.user1AccessToken
-        , checkExists = arrayOf("0.id", "0.ip", "0.success")
-        , idFinder = "0.id"
-        , sinceId = true
-        , untilId = true
-    ).run(ts)
-
-
     ApiTest(
         caption = "(user1)ユーザ説明文の更新"
         , path = "/api/i/update"
@@ -40,6 +28,23 @@ suspend fun testUser1(ts : TestStatus) {
         , params = jsonObject("description" to "がうがう")
         , checkExists = arrayOf("description")
     ).run(ts)
+}
+
+@TestSequence
+suspend fun testUser2(ts : TestStatus) {
+
+    Config.user2Id ?: return
+
+    ApiTest(
+        caption = "(user2)ログイン履歴"
+        , path = "/api/i/signin_history"
+        , accessToken = Config.user2AccessToken
+        , checkExists = arrayOf("0.id", "0.ip", "0.success")
+        , idFinder = "0.id"
+        , sinceId = true
+        , untilId = true
+    ).run(ts)
+
 }
 
 

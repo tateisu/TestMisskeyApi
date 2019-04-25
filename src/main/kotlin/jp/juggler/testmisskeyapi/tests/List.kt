@@ -72,14 +72,6 @@ suspend fun testListAction(ts : TestStatus) {
     ).run(ts)
 
     ApiTest(
-        caption = "(user1)リストからユーザーを削除"
-        , path = "/api/users/lists/pull"
-        , accessToken = Config.user1AccessToken
-        , params = jsonObject("listId" to listId, "userId" to Config.user2Id)
-        ,check204 = true
-    ).run(ts)
-
-    ApiTest(
         caption = "(user1)リストのタイトル変更"
         , path = "/api/users/lists/update"
         , accessToken = Config.user1AccessToken
@@ -94,6 +86,14 @@ suspend fun testListAction(ts : TestStatus) {
         , accessToken = Config.user1AccessToken
         , checkExists = arrayOf("id", titleArg, "userIds.0")
         , params = jsonObject("listId" to listId)
+    ).run(ts)
+
+    ApiTest(
+        caption = "(user1)リストからユーザーを削除"
+        , path = "/api/users/lists/pull"
+        , accessToken = Config.user1AccessToken
+        , params = jsonObject("listId" to listId, "userId" to Config.user2Id)
+        ,check204 = true
     ).run(ts)
 
     ApiTest(
